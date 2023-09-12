@@ -43,12 +43,19 @@ namespace BookApi_MySQL.Controllers
         [HttpGet("{userId}")]
         public async Task<IActionResult> GetById(int userId)
         {
-            var user = await _userService.GetById(userId);
-            if (user == null)
+            try
             {
-                return NotFound();
+                var user = await _userService.GetById(userId);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                return Ok(user);
             }
-            return Ok(user);
+            catch (ArgumentException e)
+            {
+                return BadRequest(new { e.Message });
+            }
         }
 
         [HttpPost("login")]
@@ -56,7 +63,7 @@ namespace BookApi_MySQL.Controllers
         {
             try
             {
-                string? jwtToken = await _userService.Login(loginViewModel);
+                var jwtToken = await _userService.Login(loginViewModel);
                 return Ok(new
                 {
                     jwtToken

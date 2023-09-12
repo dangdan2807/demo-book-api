@@ -14,12 +14,12 @@ namespace BookApi_MySQL.Repositories
 
         public async Task<IEnumerable<Book>> GetBooks()
         {
-            return await _context.Books.ToListAsync();
+            return await _context.Books.Where(b => b.isDeleted == false).ToListAsync();
         }
 
         public async Task<Book?> GetBookById(int id)
         {
-            return await _context.Books.FindAsync(id);
+            return await _context.Books.Where(b => b.isDeleted == false).FirstAsync(book => book.Id == id);
         }
 
         public async Task<Book?> AddBook(Book book)
@@ -38,15 +38,16 @@ namespace BookApi_MySQL.Repositories
 
         public async Task<Book> DeleteBook(int id)
         {
-            var book = await _context.Books.FindAsync(id);
-            _context.Books.Remove(book);
+            var book = await _context.Books.Where(b => b.isDeleted == false).FirstAsync(book => book.Id == id);
+            book.isDeleted = true;
+            _context.Entry(book).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return book;
         }
 
         public async Task<Book?> GetBookByName(string bookName)
         {
-            return await _context.Books.FirstOrDefaultAsync(book => book.bookName == bookName);
+            return await _context.Books.Where(b => b.isDeleted == false).FirstOrDefaultAsync(book => book.bookName == bookName);
         }
     }
 }
