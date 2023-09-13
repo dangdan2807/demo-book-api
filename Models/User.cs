@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BookApi_MySQL.Models
 {
@@ -37,6 +37,9 @@ namespace BookApi_MySQL.Models
 
         [Column("date_of_birth")]
         public DateTime? DateOfBirth { get; set; }
+
+        [Column("is_admin")]
+        public bool IsAdmin { get; set; } = false;
 
         // navication
         public ICollection<Book>? Books { get; set; }
