@@ -5,9 +5,9 @@ namespace BookApi_MySQL.Repositories
 {
     public interface IUserRepository
     {
-        Task<User?> GetById(int userId);
-        Task<User?> GetByUsername(string username);
-        Task<User?> GetByEmail(string email);
+        Task<User?> GetUserById(int userId);
+        Task<User?> GetUserByUsername(string username);
+        Task<User?> GetUserByEmail(string email);
         Task<User?> Create(RegisterViewModel registerViewModel);
         Task<string> Login(LoginViewModel loginViewModel);
     }

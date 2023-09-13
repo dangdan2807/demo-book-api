@@ -1,10 +1,12 @@
 ﻿using BookApi_MySQL.Models;
+using BookApi_MySQL.Models.DTO;
 
 namespace BookApi_MySQL.Repositories
 {
     public interface IBookRepository
     {
-        Task<IEnumerable<Book>> GetBooks();
+        Task<GetBooksDTO> GetBooks(int? pageNumber = 1, int? pageSize = 10, string? sort = "ASC");
+        Task<IEnumerable<GetBooksDTO>> GetBooksByUserId(int userId);
         Task<Book?> GetBookById(int id);
         Task<Book?> AddBook(Book book);
         Task<Book> UpdateBook(Book book);

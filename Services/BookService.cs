@@ -1,4 +1,5 @@
 ﻿using BookApi_MySQL.Models;
+using BookApi_MySQL.Models.DTO;
 using BookApi_MySQL.Repositories;
 using BookApi_MySQL.ViewModel;
 
@@ -7,22 +8,34 @@ namespace BookApi_MySQL.Services
     public class BookService : IBookService
     {
         private readonly IBookRepository _bookRepository;
+        private readonly IUserRepository _userRepository;
 
-        public BookService(IBookRepository bookRepository) => _bookRepository = bookRepository;
+        public BookService(IBookRepository bookRepository, IUserRepository userRepository)
+        {
+            _bookRepository = bookRepository;
+            _userRepository = userRepository;
+        }
 
-        public async Task<Book?> AddBook(AddBookViewModel addBookViewModel)
+        public async Task<AddBookDTO?> AddBook(int userId, AddBookViewModel addBookViewModel)
         {
             var existingBookById = await _bookRepository.GetBookById(addBookViewModel.Id ?? 0);
             if (existingBookById != null)
             {
-                throw new Exception("Book id already exists");
+                throw new ArgumentException("Book id already exists");
             }
 
             var existingBookByName = await _bookRepository.GetBookByName(addBookViewModel.bookName);
             if (existingBookByName != null)
             {
-                throw new Exception("Book name already exists");
+                throw new ArgumentException("Book name already exists");
             }
+
+            var existingUser = await _userRepository.GetUserById(userId);
+            if (existingUser == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+
             var book = new Book
             {
                 Id = addBookViewModel.Id ?? 0,
@@ -30,8 +43,20 @@ namespace BookApi_MySQL.Services
                 price = addBookViewModel.price,
                 category = addBookViewModel.category,
                 author = addBookViewModel.author,
+                user = existingUser
             };
-            return await _bookRepository.AddBook(book);
+            var newBook = await _bookRepository.AddBook(book);
+
+            var addBookDTO = new AddBookDTO
+            {
+                Id = newBook.Id,
+                bookName = newBook.bookName,
+                price = newBook.price,
+                category = newBook.category,
+                author = newBook.author,
+                UserId = newBook.user.UserId
+            };
+            return addBookDTO;
         }
 
         public async Task<Book?> DeleteBook(int id)
@@ -65,9 +90,9 @@ namespace BookApi_MySQL.Services
             }
         }
 
-        public Task<IEnumerable<Book>> GetBooks()
+        public async Task<GetBooksDTO> GetBooks(int? pageNumber = 1, int? pageSize = 10, string? sort = "ASC")
         {
-            var books = _bookRepository.GetBooks();
+            var books = await _bookRepository.GetBooks(pageNumber, pageSize, sort);
             return books;
         }
 

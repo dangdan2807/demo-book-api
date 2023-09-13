@@ -38,17 +38,17 @@ namespace BookApi_MySQL.Repositories
             return savedUser.Entity;
         }
 
-        public async Task<User?> GetByEmail(string email)
+        public async Task<User?> GetUserByEmail(string email)
         {
             return await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<User?> GetById(int userId)
+        public async Task<User?> GetUserById(int userId)
         {
             return await _dbContext.Users.FindAsync(userId);
         }
 
-        public async Task<User?> GetByUsername(string username)
+        public async Task<User?> GetUserByUsername(string username)
         {
             return await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
         }

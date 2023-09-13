@@ -1,10 +1,11 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using BookApi_MySQL.Models;
 using BookApi_MySQL.Repositories;
 using BookApi_MySQL.Services;
-using System.Text.Json.Serialization;
-using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using BookApi_MySQL.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +74,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+//app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 app.UseHttpsRedirection();
 

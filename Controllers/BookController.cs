@@ -1,13 +1,15 @@
 ﻿
 using BookApi_MySQL.Attribute;
+using BookApi_MySQL.Extensions;
 using BookApi_MySQL.Services;
 using BookApi_MySQL.ViewModel;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace TodoApi_MySQL.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [JwtAuthorize]
     public class BookController : ControllerBase
     {
@@ -15,11 +17,11 @@ namespace TodoApi_MySQL.Controllers
         public BookController(IBookService bookService) => _bookService = bookService;
 
         [HttpGet]
-        public async Task<IActionResult> GetBooks()
+        public async Task<IActionResult> GetBooks(int? pageNumber = 1, int? pageSize = 10, string? sort = "ASC")
         {
             try
             {
-                var books = await _bookService.GetBooks();
+                var books = await _bookService.GetBooks(pageNumber, pageSize, sort);
                 return Ok(books);
             }
             catch (Exception ex)
@@ -33,8 +35,9 @@ namespace TodoApi_MySQL.Controllers
         {
             try
             {
-                var book = await _bookService.AddBook(addBookViewModel);
-                return Ok(book);
+                int userId = HttpContext.GetUserId();
+                var book = await _bookService.AddBook(userId, addBookViewModel);
+                return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book);
             }
             catch (Exception ex)
             {

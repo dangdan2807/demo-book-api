@@ -20,7 +20,7 @@ namespace BookApi_MySQL.Services
 
         public async Task<User?> GetById(int userId)
         {
-            User? user = await _userRepository.GetById(userId);
+            User? user = await _userRepository.GetUserById(userId);
             return user;
         }
 
@@ -36,12 +36,12 @@ namespace BookApi_MySQL.Services
 
         public async Task<User?> Register(RegisterViewModel registerViewModel)
         {
-            var existingUserByUsername = await _userRepository.GetByUsername(registerViewModel.Username);
+            var existingUserByUsername = await _userRepository.GetUserByUsername(registerViewModel.Username);
             if (existingUserByUsername != null)
             {
                 throw new ArgumentException("Username already exists");
             }
-            var existingUserByEmail = await _userRepository.GetByEmail(registerViewModel.Email);
+            var existingUserByEmail = await _userRepository.GetUserByEmail(registerViewModel.Email);
             if (existingUserByEmail != null)
             {
                 throw new ArgumentException("Email already exists");

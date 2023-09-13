@@ -34,7 +34,10 @@ namespace BookApi_MySQL.Models
         [Column("is_deleted")]
         public bool isDeleted { get; set; } = false;
 
-        [ForeignKey("user_id")]
-        public User user;
+        [ForeignKey("User")]
+        [Column("user_id")]
+        public int? UserId { get; set; }
+
+        public User? user { get; set; }
     }
 }

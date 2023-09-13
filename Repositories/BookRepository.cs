@@ -1,4 +1,5 @@
 ﻿using BookApi_MySQL.Models;
+using BookApi_MySQL.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookApi_MySQL.Repositories
@@ -12,21 +13,53 @@ namespace BookApi_MySQL.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Book>> GetBooks()
+        public async Task<GetBooksDTO> GetBooks(int? pageNumber = 1, int? pageSize = 10, string? sort = "ASC")
         {
-            return await _context.Books.Where(b => b.isDeleted == false).ToListAsync();
+            var books = await _context.Books
+                .Where(b => b.isDeleted == false)
+                .Skip((pageNumber.Value - 1) * pageSize.Value)
+                .Take(pageSize.Value)
+                .ToListAsync();
+            // query count books
+            var count = await _context.Books.CountAsync();
+
+            var pagination = new PaginationDTO
+            {
+                currentPage = pageNumber,
+                pageSize = pageSize,
+                totalCount = count
+            };
+
+            var getBooksDTOs = new GetBooksDTO { Books = books, Pagination = pagination };
+            if (books == null || books.Count == 0)
+            {
+                getBooksDTOs = new GetBooksDTO { Books = new List<Book>(), Pagination = pagination };
+            }
+
+            return getBooksDTOs;
+        }
+
+        public async Task<IEnumerable<GetBooksDTO>> GetBooksByUserId(int userid)
+        {
+            //return await _context.Books
+            //    .Where(b => b.isDeleted == false)
+            //    .Where(book => book.user.UserId == userid)
+            //    .ToListAsync();
+            throw new NotImplementedException();
         }
 
         public async Task<Book?> GetBookById(int id)
         {
-            return await _context.Books.Where(b => b.isDeleted == false).FirstAsync(book => book.Id == id);
+            return await _context.Books
+                .Where(b => b.isDeleted == false)
+                .FirstOrDefaultAsync(book => book.Id == id);
         }
 
         public async Task<Book?> AddBook(Book book)
         {
-            _context.Books.Add(book);
+            var saveBook = _context.Books.Add(book);
             await _context.SaveChangesAsync();
-            return book;
+            return saveBook.Entity;
         }
 
         public async Task<Book> UpdateBook(Book book)
