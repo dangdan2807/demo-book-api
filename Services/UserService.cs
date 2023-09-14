@@ -2,6 +2,10 @@
 using BookApi_MySQL.Models.DTO;
 using BookApi_MySQL.Repositories;
 using BookApi_MySQL.ViewModel;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace BookApi_MySQL.Services
 {
@@ -9,11 +13,13 @@ namespace BookApi_MySQL.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ITokenService _tokenService;
+        private readonly IConfiguration _config;
 
-        public UserService(IUserRepository userRepository, ITokenService tokenService)
+        public UserService(IUserRepository userRepository, ITokenService tokenService, IConfiguration configuration)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;
+            _config = configuration;
         }
 
         public Task<User> GetUserByEmail(string email)
@@ -54,6 +60,31 @@ namespace BookApi_MySQL.Services
                 accessToken = accessToken,
                 refreshToken = refreshToken
             };
+        }
+
+        public async Task<LoginDTO> RefreshToken(RefreshTokenViewModel refreshTokenViewModel)
+        {
+            var token = await _tokenService.getTokenByAccessTokenAndRefreshToken(refreshTokenViewModel);
+            if (token != null)
+            {
+                var user = await _userRepository.GetUserById(token.userId);
+                if (user == null)
+                {
+                    throw new SecurityTokenException("Invalid token");
+                }
+                var accessToken = await _tokenService.GenerateAccessToken(user);
+                var refreshToken = await _tokenService.GenerateRefreshToken(user.UserId, accessToken);
+                return new LoginDTO
+                {
+                    accessToken = accessToken,
+                    refreshToken = refreshToken
+                };
+            }
+            else
+            {
+                // Unauthorized
+                throw new SecurityTokenException("Invalid token");
+            }
         }
 
         public async Task<User?> Register(RegisterViewModel registerViewModel)

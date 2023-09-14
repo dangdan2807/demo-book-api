@@ -1,5 +1,6 @@
 ﻿using BookApi_MySQL.Models;
 using BookApi_MySQL.Repositories;
+using BookApi_MySQL.ViewModel;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -61,12 +62,18 @@ namespace BookApi_MySQL.Services
                 {
                     userId = userId,
                     refreshToken = refreshToken,
-                    accesstoken = token,
+                    accessToken = token,
                     expRefreshToken = DateTime.UtcNow.AddDays(365)
                 };
                 await _tokenRepository.AddToken(tokenResponse);
                 return refreshToken;
             }
+        }
+
+        public async Task<TokenResponse> getTokenByAccessTokenAndRefreshToken(RefreshTokenViewModel refreshTokenViewModel)
+        {
+            var token = await _tokenRepository.getTokenByAccessTokenAndRefreshToken(refreshTokenViewModel);
+            return token;
         }
     }
 }

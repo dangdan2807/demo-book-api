@@ -1,6 +1,4 @@
 ﻿
-//using BookApi_MySQL.Attribute;
-using BookApi_MySQL.Extensions;
 using BookApi_MySQL.Services;
 using BookApi_MySQL.ViewModel;
 using Microsoft.AspNetCore.Authorization;

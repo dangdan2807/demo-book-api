@@ -1,4 +1,5 @@
 ﻿using BookApi_MySQL.Models;
+using BookApi_MySQL.ViewModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookApi_MySQL.Repositories
@@ -17,6 +18,14 @@ namespace BookApi_MySQL.Repositories
             var saveToken = await _context.TokenResponses.AddAsync(token);
             await _context.SaveChangesAsync();
             return saveToken.Entity;
+        }
+
+        public async Task<TokenResponse> getTokenByAccessTokenAndRefreshToken(RefreshTokenViewModel refreshTokenViewModel)
+        {
+            var token = await _context.TokenResponses
+                .Where(t => t.accessToken == refreshTokenViewModel.AccessToken && t.refreshToken == refreshTokenViewModel.RefreshToken)
+                .FirstOrDefaultAsync();
+            return token;
         }
 
         public Task<TokenResponse> GetTokenByUserIdAndDate(int userId, DateTime time)

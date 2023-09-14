@@ -13,7 +13,7 @@ namespace BookApi_MySQL.Models
 
         [Column("access_token")]
         [StringLength(255)]
-        public string accesstoken { get; set; } = "";
+        public string accessToken { get; set; } = "";
 
         [Column("refresh_token")]
         [StringLength(255)]

@@ -3,6 +3,7 @@ using BookApi_MySQL.Models.DTO;
 using BookApi_MySQL.Services;
 using BookApi_MySQL.ViewModel;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace BookApi_MySQL.Controllers
 {
@@ -69,6 +70,24 @@ namespace BookApi_MySQL.Controllers
             catch (ArgumentException e)
             {
                 return BadRequest(new { e.Message });
+            }
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken(RefreshTokenViewModel refreshTokenViewModel)
+        {
+            try
+            {
+                var loginDTO = await _userService.RefreshToken(refreshTokenViewModel);
+                return Ok(loginDTO);
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(new { e.Message });
+            } 
+            catch (SecurityTokenException e)
+            {
+                return Unauthorized(new { e.Message });
             }
         }
     }
