@@ -45,7 +45,7 @@ namespace BookApi_MySQL.Controllers
         {
             try
             {
-                var user = await _userService.GetById(userId);
+                var user = await _userService.GetUserById(userId);
                 if (user == null)
                 {
                     return NotFound();
@@ -63,11 +63,8 @@ namespace BookApi_MySQL.Controllers
         {
             try
             {
-                var jwtToken = await _userService.Login(loginViewModel);
-                return Ok(new
-                {
-                    jwtToken
-                });
+                var loginDTO = await _userService.Login(loginViewModel);
+                return Ok(loginDTO);
             }
             catch (ArgumentException e)
             {

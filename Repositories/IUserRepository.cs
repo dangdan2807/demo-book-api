@@ -9,6 +9,5 @@ namespace BookApi_MySQL.Repositories
         Task<User?> GetUserByUsername(string username);
         Task<User?> GetUserByEmail(string email);
         Task<User?> Create(RegisterViewModel registerViewModel);
-        Task<string> Login(LoginViewModel loginViewModel);
     }
 }
