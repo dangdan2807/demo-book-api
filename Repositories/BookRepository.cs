@@ -39,13 +39,30 @@ namespace BookApi_MySQL.Repositories
             return getBooksDTOs;
         }
 
-        public async Task<IEnumerable<GetBooksDTO>> GetBooksByUserId(int userid)
+        public async Task<GetBooksDTO> GetBooksByUserId(int userid, int? pageNumber = 1, int? pageSize = 10, string? sort = "ASC")
         {
-            //return await _context.Books
-            //    .Where(b => b.isDeleted == false)
-            //    .Where(book => book.user.UserId == userid)
-            //    .ToListAsync();
-            throw new NotImplementedException();
+            var books = await _context.Books
+                .Where(b => b.isDeleted == false && b.UserId == userid)
+                .Skip((pageNumber.Value - 1) * pageSize.Value)
+                .Take(pageSize.Value)
+                .ToListAsync();
+            // query count books
+            var count = await _context.Books.CountAsync();
+
+            var pagination = new PaginationDTO
+            {
+                currentPage = pageNumber,
+                pageSize = pageSize,
+                totalCount = count
+            };
+
+            var getBooksDTOs = new GetBooksDTO { Books = books, Pagination = pagination };
+            if (books == null || books.Count == 0)
+            {
+                getBooksDTOs = new GetBooksDTO { Books = new List<Book>(), Pagination = pagination };
+            }
+
+            return getBooksDTOs;
         }
 
         public async Task<Book?> GetBookById(int id)
@@ -71,7 +88,9 @@ namespace BookApi_MySQL.Repositories
 
         public async Task<Book> DeleteBook(int id)
         {
-            var book = await _context.Books.Where(b => b.isDeleted == false).FirstAsync(book => book.Id == id);
+            var book = await _context.Books
+                .Where(b => b.isDeleted == false)
+                .FirstOrDefaultAsync(book => book.Id == id);
             book.isDeleted = true;
             _context.Entry(book).State = EntityState.Modified;
             await _context.SaveChangesAsync();
@@ -80,7 +99,9 @@ namespace BookApi_MySQL.Repositories
 
         public async Task<Book?> GetBookByName(string bookName)
         {
-            return await _context.Books.Where(b => b.isDeleted == false).FirstOrDefaultAsync(book => book.bookName == bookName);
+            return await _context.Books
+                .Where(b => b.isDeleted == false)
+                .FirstOrDefaultAsync(book => book.bookName == bookName);
         }
     }
 }

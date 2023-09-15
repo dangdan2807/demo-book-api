@@ -22,20 +22,46 @@ namespace BookApi_MySQL.Services
             _config = configuration;
         }
 
-        public Task<User> GetUserByEmail(string email)
+        public async Task<GetUserDTO> GetUserByEmail(string email)
         {
-            throw new NotImplementedException();
+            User? user = await _userRepository.GetUserByEmail(email);
+            return new GetUserDTO
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                Phone = user.Phone,
+                FullName = user.FullName,
+                DateOfBirth = user.DateOfBirth
+            };
         }
 
-        public async Task<User?> GetUserById(int userId)
+        public async Task<GetUserDTO?> GetUserById(int userId)
         {
             User? user = await _userRepository.GetUserById(userId);
-            return user;
+            return new GetUserDTO
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                Phone = user.Phone,
+                FullName = user.FullName,
+                DateOfBirth = user.DateOfBirth
+            };
         }
 
-        public Task<User> GetUserByUsername(string username)
+        public async Task<GetUserDTO> GetUserByUsername(string username)
         {
-            throw new NotImplementedException();
+            User? user = await _userRepository.GetUserByUsername(username);
+            return new GetUserDTO
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                Phone = user.Phone,
+                FullName = user.FullName,
+                DateOfBirth = user.DateOfBirth
+            };
         }
 
         public async Task<LoginDTO> Login(LoginViewModel loginViewModel)

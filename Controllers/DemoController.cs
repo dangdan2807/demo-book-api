@@ -4,39 +4,95 @@ using Microsoft.AspNetCore.Mvc;
 namespace BookApi_MySQL.Controllers
 {
     [ApiController]
-    [Route("api/v1/[controller]")]
-    public class DemoController : ControllerBase 
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
+    public class DemoController : ControllerBase
     {
-        public DemoController()
+        private readonly ILogger _logger;
+
+        public DemoController(ILogger<DemoController> logger)
         {
+            _logger = logger;
         }
 
         [HttpGet("policy/admin")]
         [Authorize(Policy = "Admin")]
         public IActionResult GetPolicyAdmin()
         {
-            return Ok("Admin");
+            try
+            {
+                _logger.LogInformation("Policy Admin success");
+                return Ok(new
+                {
+                    message = "Policy Admin"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Policy Admin error");
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("policy/user")]
         [Authorize(Policy = "User")]
         public IActionResult GetPolicyUser()
         {
-            return Ok("User");
+            try
+            {
+                _logger.LogInformation("Policy User success");
+                return Ok(new
+                {
+                    message = "Policy User"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Policy User error");
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("roles/admin")]
         [Authorize(Roles = "Admin")]
         public IActionResult GetRolesAdmin()
         {
-            return Ok("Admin");
+            try
+            {
+                _logger.LogInformation("Roles Admin success");
+                return Ok(new
+                {
+                    message = "Roles Admin"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Roles Admin error");
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("roles/user")]
         [Authorize(Roles = "User")]
         public IActionResult GetRolesUser()
         {
-            return Ok("User");
+            try
+            {
+                _logger.LogInformation("Roles User success");
+                return Ok(new
+                {
+                    message = "Roles User"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Roles User error");
+                _logger.LogError(ex.Message);
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

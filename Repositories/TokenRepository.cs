@@ -23,7 +23,8 @@ namespace BookApi_MySQL.Repositories
         public async Task<TokenResponse> getTokenByAccessTokenAndRefreshToken(RefreshTokenViewModel refreshTokenViewModel)
         {
             var token = await _context.TokenResponses
-                .Where(t => t.accessToken == refreshTokenViewModel.AccessToken && t.refreshToken == refreshTokenViewModel.RefreshToken)
+                .Where(t => t.accessToken == refreshTokenViewModel.AccessToken
+                && t.refreshToken == refreshTokenViewModel.RefreshToken)
                 .FirstOrDefaultAsync();
             return token;
         }

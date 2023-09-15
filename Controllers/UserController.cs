@@ -2,13 +2,15 @@
 using BookApi_MySQL.Models.DTO;
 using BookApi_MySQL.Services;
 using BookApi_MySQL.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BookApi_MySQL.Controllers
 {
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -42,16 +44,17 @@ namespace BookApi_MySQL.Controllers
         }
 
         [HttpGet("{userId}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetById(int userId)
         {
             try
             {
-                var user = await _userService.GetUserById(userId);
-                if (user == null)
+                var getUserDTO = await _userService.GetUserById(userId);
+                if (getUserDTO == null)
                 {
                     return NotFound();
                 }
-                return Ok(user);
+                return Ok(getUserDTO);
             }
             catch (ArgumentException e)
             {

@@ -2,18 +2,31 @@ using BookApi_MySQL.Models;
 using BookApi_MySQL.Repositories;
 using BookApi_MySQL.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Exceptions;
 using System.Text;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog();
+Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .Enrich.FromLogContext()
+                .Enrich.WithExceptionDetails()
+                .Enrich.WithMachineName()
+                .WriteTo.Console()
+                .WriteTo.Seq("http://localhost:5341", Serilog.Events.LogEventLevel.Information)
+                .CreateLogger();
+
+builder.Host.UseSerilog((context, loggerConfig)
+    => loggerConfig.ReadFrom.Configuration(context.Configuration));
+
 // Add services to the container.
 builder.Services.AddControllers();
-    //.AddJsonOptions(x =>
-    //            x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 var settings = builder.Configuration.GetRequiredSection("ConnectionStrings");
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -83,6 +96,22 @@ builder.Services.AddSwaggerGen(c =>
           }
         });
 });
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ReportApiVersions = true;
+    //options.ApiVersionReader = ApiVersionReader.Combine(
+        //new QueryStringApiVersionReader("version"),
+        //new HeaderApiVersionReader("X-Version"),
+        //new MediaTypeApiVersionReader("ver")
+    //);
+});
+builder.Services.AddVersionedApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
 
 var app = builder.Build();
 
@@ -92,8 +121,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-//app.UseMiddleware<ExceptionHandlerMiddleware>();
-
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
