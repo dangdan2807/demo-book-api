@@ -1,4 +1,5 @@
 ﻿
+using BookApi_MySQL.Models;
 using BookApi_MySQL.Services;
 using BookApi_MySQL.ViewModel;
 using Microsoft.AspNetCore.Authorization;
@@ -64,7 +65,22 @@ namespace TodoApi_MySQL.Controllers
         {
             try
             {
-                var existingBook = await _bookService.GetBookById(id);
+                var role = User.FindFirstValue(ClaimTypes.Role);
+                Book existingBook = null;
+                if (role == "Admin")
+                {
+                    existingBook = await _bookService.GetBookById(id);
+                }
+                else
+                {
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    int userIdInt = Int32.Parse(userId);
+                    existingBook = await _bookService.GetBookByIdAndUserId(id, userIdInt);
+                    if (existingBook == null)
+                    {
+                        return Forbid();
+                    }
+                }
                 if (existingBook == null)
                 {
                     return NotFound();
@@ -83,8 +99,27 @@ namespace TodoApi_MySQL.Controllers
         {
             try
             {
-                var updatedBook = await _bookService.UpdateBook(id, updateBookViewModel);
-                return Ok(updatedBook);
+                var role = User.FindFirstValue(ClaimTypes.Role);
+                Book existingBook = null;
+                if (role == "Admin")
+                {
+                    existingBook = await _bookService.UpdateBook(id, updateBookViewModel);
+                }
+                else
+                {
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    int userIdInt = Int32.Parse(userId);
+                    existingBook = await _bookService.UpdateBookByIdAndUserId(id, userIdInt, updateBookViewModel);
+                    if (existingBook == null)
+                    {
+                        return Forbid();
+                    }
+                }
+                if (existingBook == null)
+                {
+                    return NotFound();
+                }
+                return Ok(existingBook);
             }
             catch (Exception ex)
             {
@@ -98,7 +133,26 @@ namespace TodoApi_MySQL.Controllers
         {
             try
             {
-                await _bookService.DeleteBook(id);
+                var role = User.FindFirstValue(ClaimTypes.Role);
+                Book existingBook = null;
+                if (role == "Admin")
+                {
+                    await _bookService.DeleteBook(id);
+                }
+                else
+                {
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    int userIdInt = Int32.Parse(userId);
+                    existingBook = await _bookService.DeleteBookByIdAndUserId(id, userIdInt);
+                    if (existingBook == null)
+                    {
+                        return Forbid();
+                    }
+                }
+                if (existingBook == null)
+                {
+                    return NotFound();
+                }
                 return NoContent();
             }
             catch (Exception ex)

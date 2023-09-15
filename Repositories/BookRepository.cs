@@ -72,6 +72,13 @@ namespace BookApi_MySQL.Repositories
                 .FirstOrDefaultAsync(book => book.Id == id);
         }
 
+        public async Task<Book?> GetBookByIdAndUserId(int id, int userId)
+        {
+            return await _context.Books
+                .Where(b => b.isDeleted == false && b.UserId == userId)
+                .FirstOrDefaultAsync(book => book.Id == id);
+        }
+
         public async Task<Book?> AddBook(Book book)
         {
             var saveBook = _context.Books.Add(book);

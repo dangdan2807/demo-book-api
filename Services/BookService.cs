@@ -59,6 +59,66 @@ namespace BookApi_MySQL.Services
             return addBookDTO;
         }
 
+        public Task<Book?> GetBookById(int id)
+        {
+            try
+            {
+                var book = _bookRepository.GetBookById(id);
+                return book;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public Task<Book?> GetBookByIdAndUserId(int id, int userId)
+        {
+            try
+            {
+                var book = _bookRepository.GetBookByIdAndUserId(id, userId);
+                return book;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<GetBooksDTO> GetBooks(int? pageNumber = 1, int? pageSize = 10, string? sort = "ASC")
+        {
+            var books = await _bookRepository.GetBooks(pageNumber, pageSize, sort);
+            return books;
+        }
+
+        public async Task<Book?> UpdateBook(int id, UpdateBookViewModel book)
+        {
+            var existingBook = await _bookRepository.GetBookById(id);
+            if (existingBook == null)
+            {
+                throw new Exception("Book not found");
+            }
+            existingBook.bookName = book.bookName;
+            existingBook.price = (decimal)book.price;
+            existingBook.category = book.category;
+            existingBook.author = book.author;
+            return await _bookRepository.UpdateBook(existingBook);
+        }
+
+        public async Task<Book?> UpdateBookByIdAndUserId(int id, int userId, UpdateBookViewModel book)
+        {
+            var existingBook = await _bookRepository.GetBookByIdAndUserId(id, userId);
+            if (existingBook == null)
+            {
+                return null;
+            }
+            existingBook.bookName = book.bookName;
+            existingBook.price = (decimal)book.price;
+            existingBook.category = book.category;
+            existingBook.author = book.author;
+            return await _bookRepository.UpdateBook(existingBook);
+        }
+
         public async Task<Book?> DeleteBook(int id)
         {
             try
@@ -77,45 +137,15 @@ namespace BookApi_MySQL.Services
             }
         }
 
-        public Task<Book?> GetBookById(int id)
+        public async Task<Book?> DeleteBookByIdAndUserId(int id, int userId)
         {
-            try
+            var existingBook = await _bookRepository.GetBookByIdAndUserId(id, userId);
+            if (existingBook == null)
             {
-                var book = _bookRepository.GetBookById(id);
-                return book;
+                return null;
             }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        public async Task<GetBooksDTO> GetBooks(int? pageNumber = 1, int? pageSize = 10, string? sort = "ASC")
-        {
-            var books = await _bookRepository.GetBooks(pageNumber, pageSize, sort);
-            return books;
-        }
-
-        public async Task<Book?> UpdateBook(int id, UpdateBookViewModel book)
-        {
-            try
-            {
-                var existingBook = await _bookRepository.GetBookById(id);
-                if (existingBook == null)
-                {
-                    throw new Exception("Book not found");
-                }
-                existingBook.bookName = book.bookName;
-                existingBook.price = (decimal)book.price;
-                existingBook.category = book.category;
-                existingBook.author = book.author;
-                return await _bookRepository.UpdateBook(existingBook);
-
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            var book = await _bookRepository.DeleteBook(id);
+            return book;
         }
     }
 }
