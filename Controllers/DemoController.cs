@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BookApi_MySQL.Controllers
 {
-    [ApiController]
+    //[ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     public class DemoController : ControllerBase

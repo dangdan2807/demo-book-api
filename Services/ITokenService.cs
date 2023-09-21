@@ -1,5 +1,4 @@
 ﻿using BookApi_MySQL.Models;
-using BookApi_MySQL.Models.DTO;
 using BookApi_MySQL.ViewModel;
 
 namespace BookApi_MySQL.Services
@@ -9,5 +8,6 @@ namespace BookApi_MySQL.Services
         Task<string> GenerateAccessToken(User user);
         Task<string> GenerateRefreshToken(int userId, string token);
         Task<TokenResponse> getTokenByAccessTokenAndRefreshToken(RefreshTokenViewModel refreshTokenViewModel);
+        Task<TokenResponse> RenewAccessToken(User user, TokenResponse tokenResponse);
     }
 }

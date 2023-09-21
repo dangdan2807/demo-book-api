@@ -5,6 +5,7 @@ using BookApi_MySQL.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.Text.Json;
 
 namespace BookApi_MySQL.Controllers
 {
@@ -14,10 +15,12 @@ namespace BookApi_MySQL.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly Serilog.ILogger _logger;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, Serilog.ILogger logger)
         {
             _userService = userService;
+            _logger = logger;
         }
 
         [HttpPost("register")]
@@ -28,18 +31,29 @@ namespace BookApi_MySQL.Controllers
                 User? createdUser = await _userService.Register(registerViewModel);
                 RegisterUserDTO registerUserDTO = new RegisterUserDTO
                 {
-                    UserId = createdUser.UserId,
-                    Username = createdUser.Username,
-                    Email = createdUser.Email,
-                    Phone = createdUser.Phone,
-                    FullName = createdUser.FullName,
-                    DateOfBirth = createdUser.DateOfBirth
+                    UserId = createdUser.userId,
+                    Username = createdUser.username,
+                    Email = createdUser.email,
+                    Phone = createdUser.phone,
+                    FullName = createdUser.fullName,
+                    DateOfBirth = createdUser.dateOfBirth
                 };
-                return Ok(registerUserDTO);
+                var apiResponse = new ApiResponse
+                {
+                    success = true,
+                    message = "Register successfully",
+                    data = registerUserDTO
+                };
+                return Ok(apiResponse);
             }
             catch (ArgumentException e)
             {
-                return BadRequest(new { e.Message });
+                var apiResponse = new ApiResponse
+                {
+                    success = false,
+                    message = e.Message,
+                };
+                return BadRequest(apiResponse);
             }
         }
 
@@ -47,18 +61,28 @@ namespace BookApi_MySQL.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetById(int userId)
         {
+            var apiResponse = new ApiResponse
+            {
+                success = true,
+                message = "Get user successfully",
+            };
             try
             {
                 var getUserDTO = await _userService.GetUserById(userId);
                 if (getUserDTO == null)
                 {
-                    return NotFound();
+                    apiResponse.success = false;
+                    apiResponse.message = "User not found";
+                    return NotFound(apiResponse);
                 }
-                return Ok(getUserDTO);
+                apiResponse.data = getUserDTO;
+                return Ok(apiResponse);
             }
             catch (ArgumentException e)
             {
-                return BadRequest(new { e.Message });
+                apiResponse.success = false;
+                apiResponse.message = e.Message;
+                return BadRequest(apiResponse);
             }
         }
 
@@ -68,29 +92,50 @@ namespace BookApi_MySQL.Controllers
             try
             {
                 var loginDTO = await _userService.Login(loginViewModel);
-                return Ok(loginDTO);
+                var apiResponse = new ApiResponse
+                {
+                    success = true,
+                    message = "Login successfully",
+                    data = loginDTO
+                };
+                return Ok(apiResponse);
             }
             catch (ArgumentException e)
             {
-                return BadRequest(new { e.Message });
+                var apiResponse = new ApiResponse
+                {
+                    success = false,
+                    message = e.Message,
+                };
+                return BadRequest(apiResponse);
             }
         }
 
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken(RefreshTokenViewModel refreshTokenViewModel)
         {
+            var apiResponse = new ApiResponse
+            {
+                success = true,
+                message = "Refresh token successfully",
+            };
             try
             {
                 var loginDTO = await _userService.RefreshToken(refreshTokenViewModel);
-                return Ok(loginDTO);
+                apiResponse.data = loginDTO;
+                return Ok(apiResponse);
             }
-            catch (ArgumentException e)
-            {
-                return BadRequest(new { e.Message });
-            } 
             catch (SecurityTokenException e)
             {
-                return Unauthorized(new { e.Message });
+                apiResponse.success = false;
+                apiResponse.message = e.Message;
+                return Unauthorized(apiResponse);
+            }
+            catch (Exception e)
+            {
+                apiResponse.success = false;
+                apiResponse.message = e.Message;
+                return BadRequest(apiResponse);
             }
         }
     }

@@ -22,6 +22,12 @@ namespace BookApi_MySQL.Models
         [Column("expiration_time")]
         public DateTime expRefreshToken { get; set; }
 
+        [Column("is_used")]
+        public bool isUsed { get; set; } = false;
+
+        [Column("is_revoke")]
+        public bool isRevoke { get; set; } = false;
+
         [ForeignKey("User")]
         [Column("user_id")]
         public int userId { get; set; }

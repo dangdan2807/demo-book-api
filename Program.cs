@@ -55,6 +55,10 @@ builder.Services
             ClockSkew = TimeSpan.Zero
         };
     });
+builder.Services.AddAuthorizationBuilder().AddPolicy("", p =>
+{
+    p.RequireClaim("role", "admin");
+});
 
 // register repositories, services
 builder.Services.AddScoped<IBookRepository, BookRepository>();

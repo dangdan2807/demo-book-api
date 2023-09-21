@@ -9,7 +9,7 @@ namespace BookApi_MySQL.Models
         [Key]
         [Column("id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public int id { get; set; }
 
         [Required(ErrorMessage = "Book name is required")]
         [StringLength(50, MinimumLength = 3, ErrorMessage = "Book name must be between 3 and 50 characters")]
@@ -35,7 +35,22 @@ namespace BookApi_MySQL.Models
 
         [ForeignKey("User")]
         [Column("user_id")]
-        public int? UserId { get; set; }
+        public int? userId { get; set; }
+
+        [Column("create_by")]
+        public int createBy { get; set; }
+
+        [Column("update_by")]
+        public int? updateBy { get; set; } = null;
+
+        [Column("create_at")]
+        public DateTime createAt { get; set; }
+
+        [Column("update_at")]
+        public DateTime? updateAt { get; set; } = null;
+
+        [Column("delete_at")]
+        public DateTime? deleteAt { get; set; } = null;
 
         public User? user { get; set; }
     }

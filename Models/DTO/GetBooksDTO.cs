@@ -2,7 +2,7 @@
 {
     public class GetBooksDTO
     {
-        public ICollection<Book>? Books { get; set; }
+        public ICollection<GetBookDTO>? Books { get; set; }
         public PaginationDTO? Pagination { get; set; }
     }
 }

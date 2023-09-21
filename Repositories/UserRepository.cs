@@ -7,12 +7,10 @@ namespace BookApi_MySQL.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly AppDbContext _dbContext;
-        private readonly IConfiguration _config;
 
-        public UserRepository(AppDbContext dbContext, IConfiguration config)
+        public UserRepository(AppDbContext dbContext)
         {
             _dbContext = dbContext;
-            _config = config;
         }
 
         public async Task<User?> Create(RegisterViewModel registerViewModel)
@@ -21,11 +19,11 @@ namespace BookApi_MySQL.Repositories
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(registerViewModel.Password, salt);
             var user = new User
             {
-                Username = registerViewModel.Username ?? "",
-                Email = registerViewModel.Email,
-                Phone = registerViewModel.Phone,
-                FullName = registerViewModel.FullName ?? "",
-                DateOfBirth = registerViewModel.DateOfBirth,
+                username = registerViewModel.Username ?? "",
+                email = registerViewModel.Email,
+                phone = registerViewModel.Phone,
+                fullName = registerViewModel.FullName ?? "",
+                dateOfBirth = registerViewModel.DateOfBirth,
                 HashedPassword = hashedPassword
             };
 
@@ -36,7 +34,7 @@ namespace BookApi_MySQL.Repositories
 
         public async Task<User?> GetUserByEmail(string email)
         {
-            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return await _dbContext.Users.FirstOrDefaultAsync(u => u.email == email);
         }
 
         public async Task<User?> GetUserById(int userId)
@@ -46,7 +44,7 @@ namespace BookApi_MySQL.Repositories
 
         public async Task<User?> GetUserByUsername(string username)
         {
-            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
+            return await _dbContext.Users.FirstOrDefaultAsync(u => u.username == username);
         }
     }
 }

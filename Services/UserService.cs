@@ -27,12 +27,12 @@ namespace BookApi_MySQL.Services
             User? user = await _userRepository.GetUserByEmail(email);
             return new GetUserDTO
             {
-                UserId = user.UserId,
-                Username = user.Username,
-                Email = user.Email,
-                Phone = user.Phone,
-                FullName = user.FullName,
-                DateOfBirth = user.DateOfBirth
+                UserId = user.userId,
+                Username = user.username,
+                Email = user.email,
+                Phone = user.phone,
+                FullName = user.fullName,
+                DateOfBirth = user.dateOfBirth
             };
         }
 
@@ -41,12 +41,12 @@ namespace BookApi_MySQL.Services
             User? user = await _userRepository.GetUserById(userId);
             return new GetUserDTO
             {
-                UserId = user.UserId,
-                Username = user.Username,
-                Email = user.Email,
-                Phone = user.Phone,
-                FullName = user.FullName,
-                DateOfBirth = user.DateOfBirth
+                UserId = user.userId,
+                Username = user.username,
+                Email = user.email,
+                Phone = user.phone,
+                FullName = user.fullName,
+                DateOfBirth = user.dateOfBirth
             };
         }
 
@@ -55,12 +55,12 @@ namespace BookApi_MySQL.Services
             User? user = await _userRepository.GetUserByUsername(username);
             return new GetUserDTO
             {
-                UserId = user.UserId,
-                Username = user.Username,
-                Email = user.Email,
-                Phone = user.Phone,
-                FullName = user.FullName,
-                DateOfBirth = user.DateOfBirth
+                UserId = user.userId,
+                Username = user.username,
+                Email = user.email,
+                Phone = user.phone,
+                FullName = user.fullName,
+                DateOfBirth = user.dateOfBirth
             };
         }
 
@@ -79,7 +79,7 @@ namespace BookApi_MySQL.Services
             }
 
             var accessToken = await _tokenService.GenerateAccessToken(user);
-            var refreshToken = await _tokenService.GenerateRefreshToken(user.UserId, accessToken);
+            var refreshToken = await _tokenService.GenerateRefreshToken(user.userId, accessToken);
 
             return new LoginDTO
             {
@@ -93,17 +93,22 @@ namespace BookApi_MySQL.Services
             var token = await _tokenService.getTokenByAccessTokenAndRefreshToken(refreshTokenViewModel);
             if (token != null)
             {
+                if (token.expRefreshToken < DateTime.UtcNow)
+                {
+                    throw new SecurityTokenException("token has expired");
+                }
+
                 var user = await _userRepository.GetUserById(token.userId);
                 if (user == null)
                 {
                     throw new SecurityTokenException("Invalid token");
                 }
-                var accessToken = await _tokenService.GenerateAccessToken(user);
-                var refreshToken = await _tokenService.GenerateRefreshToken(user.UserId, accessToken);
+                
+                var newToken = await _tokenService.RenewAccessToken(user, token);
                 return new LoginDTO
                 {
-                    accessToken = accessToken,
-                    refreshToken = refreshToken
+                    accessToken = newToken.accessToken,
+                    refreshToken = newToken.refreshToken
                 };
             }
             else
