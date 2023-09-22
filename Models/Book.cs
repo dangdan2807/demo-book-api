@@ -35,6 +35,7 @@ namespace BookApi_MySQL.Models
 
         [ForeignKey("User")]
         [Column("user_id")]
+        [Required]
         public int? userId { get; set; }
 
         [Column("create_by")]

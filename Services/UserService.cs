@@ -2,10 +2,7 @@
 using BookApi_MySQL.Models.DTO;
 using BookApi_MySQL.Repositories;
 using BookApi_MySQL.ViewModel;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 
 namespace BookApi_MySQL.Services
 {
@@ -39,9 +36,14 @@ namespace BookApi_MySQL.Services
         public async Task<GetUserDTO?> GetUserById(int userId)
         {
             User? user = await _userRepository.GetUserById(userId);
+            if (user == null)
+            {
+                return null;
+            }
+
             return new GetUserDTO
             {
-                UserId = user.userId,
+                UserId = userId,
                 Username = user.username,
                 Email = user.email,
                 Phone = user.phone,
@@ -53,6 +55,11 @@ namespace BookApi_MySQL.Services
         public async Task<GetUserDTO> GetUserByUsername(string username)
         {
             User? user = await _userRepository.GetUserByUsername(username);
+            if (user == null)
+            {
+                return null;
+            }
+
             return new GetUserDTO
             {
                 UserId = user.userId,
@@ -103,7 +110,7 @@ namespace BookApi_MySQL.Services
                 {
                     throw new SecurityTokenException("Invalid token");
                 }
-                
+
                 var newToken = await _tokenService.RenewAccessToken(user, token);
                 return new LoginDTO
                 {
@@ -133,6 +140,15 @@ namespace BookApi_MySQL.Services
 
             User? createdUser = await _userRepository.Create(registerViewModel);
             return createdUser;
+        }
+
+        public async Task Logout(string accessToken)
+        {
+            if (accessToken == null)
+            {
+                throw new ArgumentException("Access token is null");
+            }
+            await _tokenService.RevokeToken(accessToken);
         }
     }
 }

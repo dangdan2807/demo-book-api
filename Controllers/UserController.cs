@@ -2,10 +2,10 @@
 using BookApi_MySQL.Models.DTO;
 using BookApi_MySQL.Services;
 using BookApi_MySQL.ViewModel;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using System.Text.Json;
 
 namespace BookApi_MySQL.Controllers
 {
@@ -16,11 +16,13 @@ namespace BookApi_MySQL.Controllers
     {
         private readonly IUserService _userService;
         private readonly Serilog.ILogger _logger;
+        private readonly IAuthenticationSchemeProvider _authenticationSchemeProvider;
 
-        public UserController(IUserService userService, Serilog.ILogger logger)
+        public UserController(IUserService userService, Serilog.ILogger logger, IAuthenticationSchemeProvider authenticationSchemeProvider)
         {
             _userService = userService;
             _logger = logger;
+            _authenticationSchemeProvider = authenticationSchemeProvider;
         }
 
         [HttpPost("register")]
@@ -38,22 +40,20 @@ namespace BookApi_MySQL.Controllers
                     FullName = createdUser.fullName,
                     DateOfBirth = createdUser.dateOfBirth
                 };
-                var apiResponse = new ApiResponse
+                return Ok(new ApiResponse
                 {
                     success = true,
                     message = "Register successfully",
                     data = registerUserDTO
-                };
-                return Ok(apiResponse);
+                });
             }
             catch (ArgumentException e)
             {
-                var apiResponse = new ApiResponse
+                return BadRequest(new ApiResponse
                 {
                     success = false,
                     message = e.Message,
-                };
-                return BadRequest(apiResponse);
+                });
             }
         }
 
@@ -78,7 +78,7 @@ namespace BookApi_MySQL.Controllers
                 apiResponse.data = getUserDTO;
                 return Ok(apiResponse);
             }
-            catch (ArgumentException e)
+            catch (Exception e)
             {
                 apiResponse.success = false;
                 apiResponse.message = e.Message;
@@ -92,22 +92,20 @@ namespace BookApi_MySQL.Controllers
             try
             {
                 var loginDTO = await _userService.Login(loginViewModel);
-                var apiResponse = new ApiResponse
+                return Ok(new ApiResponse
                 {
                     success = true,
                     message = "Login successfully",
                     data = loginDTO
-                };
-                return Ok(apiResponse);
+                });
             }
             catch (ArgumentException e)
             {
-                var apiResponse = new ApiResponse
+                return BadRequest(new ApiResponse
                 {
                     success = false,
                     message = e.Message,
-                };
-                return BadRequest(apiResponse);
+                });
             }
         }
 
@@ -137,6 +135,24 @@ namespace BookApi_MySQL.Controllers
                 apiResponse.message = e.Message;
                 return BadRequest(apiResponse);
             }
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            // get access token from header
+            var accessToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return BadRequest(new ApiResponse
+                {
+                    success = false,
+                    message = "Access token is required"
+                });
+            }
+            await _userService.Logout(accessToken);
+            return NoContent();
         }
     }
 }

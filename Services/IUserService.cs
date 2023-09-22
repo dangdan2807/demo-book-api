@@ -12,5 +12,6 @@ namespace BookApi_MySQL.Services
         Task<User> Register(RegisterViewModel user);
         Task<LoginDTO> Login(LoginViewModel loginViewModel);
         Task<LoginDTO> RefreshToken(RefreshTokenViewModel refreshTokenViewModel);
+        Task Logout(string accessToken);
     }
 }

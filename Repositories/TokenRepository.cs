@@ -31,9 +31,9 @@ namespace BookApi_MySQL.Repositories
             return token;
         }
 
-        public Task<TokenResponse> GetTokenByUserIdAndDate(int userId, DateTime time)
+        public async Task<TokenResponse?> GetTokenByUserIdAndDate(int userId, DateTime time)
         {
-            var token = _context.TokenResponses
+            var token = await _context.TokenResponses
                 .Where(t => t.userId == userId && t.expRefreshToken >= time)
                 .OrderBy(t => t.expRefreshToken)
                 .FirstOrDefaultAsync();
@@ -42,8 +42,35 @@ namespace BookApi_MySQL.Repositories
 
         public async Task<TokenResponse> UpdateToken(int userId, TokenResponse token)
         {
+            var existingToken = await _context.TokenResponses
+                .Where(t => t.userId == userId)
+                .FirstOrDefaultAsync();
+            if (existingToken == null)
+            {
+                throw new ArgumentException("Token not found");
+            }
+            if (token.userId != userId)
+            {
+                throw new ArgumentException("User Id mismatch");
+            }
+            if (token.expRefreshToken < DateTime.Now)
+            {
+                throw new ArgumentException("token expired");
+            }
             _context.Entry(token).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+            return token;
+        }
+
+        public async Task<TokenResponse?> getTokenByAccessToken(string accessToken)
+        {
+            var token = await _context.TokenResponses
+                .Where(t => t.accessToken == accessToken)
+                .FirstOrDefaultAsync();
+            if (token == null)
+            {
+                return null;
+            }
             return token;
         }
     }

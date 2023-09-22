@@ -1,3 +1,4 @@
+using BookApi_MySQL.Middlewares;
 using BookApi_MySQL.Models;
 using BookApi_MySQL.Repositories;
 using BookApi_MySQL.Services;
@@ -55,16 +56,12 @@ builder.Services
             ClockSkew = TimeSpan.Zero
         };
     });
-builder.Services.AddAuthorizationBuilder().AddPolicy("", p =>
-{
-    p.RequireClaim("role", "admin");
-});
 
 // register repositories, services
-builder.Services.AddScoped<IBookRepository, BookRepository>();
-builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IBookRepository, BookRepository>();
+builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
@@ -125,6 +122,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseMiddleware<TokenRevokeMiddleware>();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

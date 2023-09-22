@@ -43,6 +43,5 @@ namespace BookApi_MySQL.Models
 
         // navication
         public ICollection<Book>? books { get; set; }
-        public ICollection<UserGroup>? userGroups { get; set; }
     }
 }

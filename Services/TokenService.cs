@@ -98,11 +98,7 @@ namespace BookApi_MySQL.Services
                     throw new ArgumentException("Refresh token not found");
                 }
 
-                // check refresh token is used/revoke
-                if (storedToken.isUsed)
-                {
-                    throw new ArgumentException("Refresh token has been used");
-                }
+                // check refresh token is revoke
                 if (storedToken.isRevoke)
                 {
                     throw new ArgumentException("Refresh token has been revoked");
@@ -111,7 +107,6 @@ namespace BookApi_MySQL.Services
                 // update token is used
                 string accessToken = await GenerateAccessToken(user);
                 storedToken.accessToken = accessToken;
-                storedToken.isUsed = true;
                 storedToken.isRevoke = true;
                 await _tokenRepository.UpdateToken(user.userId, storedToken);
 
@@ -156,6 +151,30 @@ namespace BookApi_MySQL.Services
         {
             var token = await _tokenRepository.getTokenByAccessTokenAndRefreshToken(refreshTokenViewModel);
             return token;
+        }
+
+        public async Task<TokenResponse> getTokenByAccessToken(string accessToken)
+        {
+            if (accessToken == null)
+            {
+                throw new Exception("Access token is null");
+            }
+            var token = await _tokenRepository.getTokenByAccessToken(accessToken);
+            if (token == null)
+            {
+                throw new Exception("Access token not found");
+            }
+            return token;
+        }
+
+        public async Task RevokeToken(string accessToken) {
+            var token = await _tokenRepository.getTokenByAccessToken(accessToken);
+            if (token == null)
+            {
+                throw new Exception("Access token not found");
+            }
+            token.isRevoke = true;
+            await _tokenRepository.UpdateToken(token.userId, token);
         }
 
         private DateTime ConvertUnixTimeToDateTime(long utcExpireDate)

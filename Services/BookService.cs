@@ -125,7 +125,7 @@ namespace BookApi_MySQL.Services
 
         public async Task<GetBookDTO?> UpdateBook(int id, int userId, string role, UpdateBookViewModel book)
         {
-            Book existingBook = null;
+            Book? existingBook = null;
             if (role == "Admin")
             {
                 existingBook = await _bookRepository.GetBookById(id);

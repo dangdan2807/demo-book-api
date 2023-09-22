@@ -10,5 +10,6 @@ namespace BookApi_MySQL.Repositories
         Task<TokenResponse> getTokenByAccessTokenAndRefreshToken(RefreshTokenViewModel refreshTokenViewModel);
         Task<TokenResponse> GetTokenByUserIdAndDate(int userId, DateTime time);
         Task<TokenResponse> UpdateToken(int userId, TokenResponse token);
+        Task<TokenResponse?> getTokenByAccessToken(string accessToken);
     }
 }

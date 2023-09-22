@@ -8,6 +8,8 @@ namespace BookApi_MySQL.Services
         Task<string> GenerateAccessToken(User user);
         Task<string> GenerateRefreshToken(int userId, string token);
         Task<TokenResponse> getTokenByAccessTokenAndRefreshToken(RefreshTokenViewModel refreshTokenViewModel);
+        Task<TokenResponse> getTokenByAccessToken(string accessToken);
         Task<TokenResponse> RenewAccessToken(User user, TokenResponse tokenResponse);
+        Task RevokeToken(string accessToken);
     }
 }

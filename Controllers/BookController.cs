@@ -1,4 +1,6 @@
 ﻿
+using BookApi_MySQL.Contraint;
+using BookApi_MySQL.Models;
 using BookApi_MySQL.Models.DTO;
 using BookApi_MySQL.Repositories;
 using BookApi_MySQL.Services;
@@ -6,7 +8,6 @@ using BookApi_MySQL.ViewModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace TodoApi_MySQL.Controllers
 {
@@ -28,7 +29,7 @@ namespace TodoApi_MySQL.Controllers
 
         // policy: Admin, User
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = RoleContraint.Admin + ", " + RoleContraint.User)]
         public async Task<IActionResult> GetBooks(int? pageNumber = 1, int? pageSize = 10, string? sort = "ASC")
         {
             try
@@ -41,15 +42,24 @@ namespace TodoApi_MySQL.Controllers
                 }
                 else
                 {
-                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    int userIdInt = Int32.Parse(userId);
+                    string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) + "";
+                    int userIdInt = Int32.Parse(userId + "");
                     existingBooks = await _bookService.GetBooksByUserId(userIdInt, pageNumber, pageSize, sort);
                 }
-                return Ok(existingBooks);
+                return Ok(new ApiResponse
+                {
+                    success = true,
+                    message = "Get all books successfully",
+                    data = existingBooks
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new ApiResponse
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 
@@ -59,14 +69,25 @@ namespace TodoApi_MySQL.Controllers
         {
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) + "";
                 int userIdInt = Int32.Parse(userId);
                 var book = await _bookService.AddBook(userIdInt, addBookViewModel);
-                return CreatedAtAction(nameof(GetBookById), new { id = book.id }, book);
+                var apiResponse = new ApiResponse
+                {
+                    success = true,
+                    message = "Add book successfully",
+                    data = book
+                };
+                return CreatedAtAction(nameof(GetBookById), new { id = book.id }, apiResponse);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                var apiResponse = new ApiResponse
+                {
+                    success = false,
+                    message = ex.Message
+                };
+                return BadRequest(apiResponse);
             }
         }
 
@@ -77,30 +98,41 @@ namespace TodoApi_MySQL.Controllers
             try
             {
                 var role = User.FindFirstValue(ClaimTypes.Role);
-                GetBookDTO existingBook = null;
-                if (role == "Admin")
+                GetBookDTO? existingBook = null;
+                existingBook = await _bookService.GetBookById(id);
+                if (existingBook == null)
                 {
-                    existingBook = await _bookService.GetBookById(id);
+                    return NotFound(new ApiResponse
+                    {
+                        success = false,
+                        message = "Book is not found"
+                    });
                 }
-                else
+
+                if (role == "User")
                 {
-                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) + "";
                     int userIdInt = Int32.Parse(userId);
-                    existingBook = await _bookService.GetBookByIdAndUserId(id, userIdInt);
-                    if (existingBook == null)
+                    if (existingBook.createBy != userIdInt)
                     {
                         return Forbid();
                     }
                 }
-                if (existingBook == null)
+
+                return Ok(new ApiResponse
                 {
-                    return NotFound();
-                }
-                return Ok(existingBook);
+                    success = true,
+                    message = "Get book successfully",
+                    data = existingBook
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new ApiResponse
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 
@@ -110,43 +142,51 @@ namespace TodoApi_MySQL.Controllers
         {
             try
             {
-                var role = User.FindFirstValue(ClaimTypes.Role);
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var role = User.FindFirstValue(ClaimTypes.Role) + "";
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) + "";
                 int userIdInt = Int32.Parse(userId);
                 var userLogin = await _userRepository.GetUserById(userIdInt);
                 if (userLogin == null)
                 {
-                    _serilogLogger.Error("user is not found");
-                    return NotFound(JsonSerializer.Serialize(new
+                    return NotFound(new ApiResponse
                     {
+                        success = false,
                         message = "user is not found"
-                    }));
+                    });
                 }
-                GetBookDTO existingBook = await _bookService.GetBookById(id);
+
+                GetBookDTO? existingBook = await _bookService.GetBookById(id);
                 if (existingBook == null)
                 {
-                    _serilogLogger.Error("book is not found");
-                    return NotFound(JsonSerializer.Serialize(new
+                    return NotFound(new ApiResponse
                     {
+                        success = false,
                         message = "book is not found"
-                    }));
+                    });
                 }
                 if (role == "User")
                 {
                     if (existingBook.userId != userIdInt)
                     {
-                        return Forbid(JsonSerializer.Serialize(new
-                        {
-                            message = "Bạn không có quyền để cập nhật cuốn sách này"
-                        }));
+                        return Forbid();
                     }
                 }
+
                 var updatedBook = await _bookService.UpdateBook(id, userIdInt, role, updateBookViewModel);
-                return Ok(existingBook);
+                return Ok(new ApiResponse
+                {
+                    success = true,
+                    message = "Update book successfully",
+                    data = updatedBook
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new ApiResponse
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
 
@@ -156,17 +196,21 @@ namespace TodoApi_MySQL.Controllers
         {
             try
             {
-                string role = User.FindFirstValue(ClaimTypes.Role);
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                string role = User.FindFirstValue(ClaimTypes.Role) + "";
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) + "";
                 int userIdInt = Int32.Parse(userId);
-                GetBookDTO existingBook = await _bookService.DeleteBook(id, userIdInt, role);
+                GetBookDTO? existingBook = await _bookService.DeleteBook(id, userIdInt, role);
                 if (existingBook == null)
                 {
-                    return NotFound();
+                    return NotFound(new ApiResponse
+                    {
+                        success = false,
+                        message = "Book is not found"
+                    });
                 }
                 if (role == "User")
                 {
-                    if (existingBook != null)
+                    if (existingBook.createBy != userIdInt)
                     {
                         return Forbid();
                     }
@@ -175,7 +219,11 @@ namespace TodoApi_MySQL.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new ApiResponse
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
     }
